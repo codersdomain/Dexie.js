@@ -8,7 +8,7 @@
  *
  * ==========================================================================
  *
- * Version 1.0.3, Wed Apr 27 2022
+ * Version 1.0.3, Wed Aug 31 2022
  *
  * https://dexie.org
  *
@@ -1401,7 +1401,7 @@ function importDB(exportedData, options) {
                 case 1:
                     stream = _a.sent();
                     dbExport = stream.result.data;
-                    db = new Dexie(dbExport.databaseName);
+                    db = new Dexie(options.newName || dbExport.databaseName);
                     db.version(dbExport.databaseVersion).stores(extractDbSchema(dbExport));
                     return [4 /*yield*/, importInto(db, stream, options)];
                 case 2:
@@ -1461,13 +1461,13 @@ function importInto(db, exportedData, options) {
                                             tableSchemaStr = dbExport.tables.filter(function (t) { return t.name === tableName; })[0].schema;
                                             if (!table) {
                                                 if (!options.acceptMissingTables)
-                                                    throw new Error("Exported table " + tableExport.tableName + " is missing in installed database");
+                                                    throw new Error("Exported table ".concat(tableExport.tableName, " is missing in installed database"));
                                                 else
                                                     return [2 /*return*/, "continue"];
                                             }
                                             if (!options.acceptChangedPrimaryKey &&
                                                 tableSchemaStr.split(',')[0] != table.schema.primKey.src) {
-                                                throw new Error("Primary key differs for table " + tableExport.tableName + ". ");
+                                                throw new Error("Primary key differs for table ".concat(tableExport.tableName, ". "));
                                             }
                                             sourceRows = tableExport.rows;
                                             rows = [];
@@ -1564,10 +1564,10 @@ function importInto(db, exportedData, options) {
                     readBlobsSynchronously = 'FileReaderSync' in self;
                     dbExport = dbExportFile.data;
                     if (!options.acceptNameDiff && db.name !== dbExport.databaseName)
-                        throw new Error("Name differs. Current database name is " + db.name + " but export is " + dbExport.databaseName);
+                        throw new Error("Name differs. Current database name is ".concat(db.name, " but export is ").concat(dbExport.databaseName));
                     if (!options.acceptVersionDiff && db.verno !== dbExport.databaseVersion) {
                         // Possible feature: Call upgraders in some isolated way if this happens... ?
-                        throw new Error("Database version differs. Current database is in version " + db.verno + " but export is " + dbExport.databaseVersion);
+                        throw new Error("Database version differs. Current database is in version ".concat(db.verno, " but export is ").concat(dbExport.databaseVersion));
                     }
                     progressCallback = options.progressCallback;
                     progress = {
@@ -1638,7 +1638,7 @@ function loadUntilWeGotEnoughData(exportedData, CHUNK_SIZE) {
                     if (!dbExportFile || dbExportFile.formatName != "dexie")
                         throw new Error("Given file is not a dexie export");
                     if (dbExportFile.formatVersion > VERSION) {
-                        throw new Error("Format version " + dbExportFile.formatVersion + " not supported");
+                        throw new Error("Format version ".concat(dbExportFile.formatVersion, " not supported"));
                     }
                     if (!dbExportFile.data) {
                         throw new Error("No data in export file");

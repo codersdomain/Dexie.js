@@ -5,6 +5,7 @@ import { TSON } from './tson';
 import { JsonStream } from './json-stream';
 
 export interface StaticImportOptions {
+  newName?: string;  
   noTransaction?: boolean;
   chunkSizeBytes?: number; // Default: DEFAULT_KILOBYTES_PER_CHUNK ( 1MB )
   filter?: (table: string, value: any, key?: any) => boolean;
@@ -39,7 +40,7 @@ export async function importDB(exportedData: Blob | JsonStream<DexieExportJsonSt
   const CHUNK_SIZE = options!.chunkSizeBytes || (DEFAULT_KILOBYTES_PER_CHUNK * 1024);
   const stream = await loadUntilWeGotEnoughData(exportedData, CHUNK_SIZE);
   const dbExport = stream.result.data!;
-  const db = new Dexie(dbExport.databaseName);
+  const db = new Dexie(options.newName || dbExport.databaseName);
   db.version(dbExport.databaseVersion).stores(extractDbSchema(dbExport));
   await importInto(db, stream, options);
   return db;
@@ -118,7 +119,7 @@ export async function importInto(db: Dexie, exportedData: Blob | JsonStream<Dexi
             throw new Error(`Exported table ${tableExport.tableName} is missing in installed database`);
           else
             continue;
-        }
+          }
         if (!options!.acceptChangedPrimaryKey &&
           tableSchemaStr.split(',')[0] != table.schema.primKey.src) {
           throw new Error(`Primary key differs for table ${tableExport.tableName}. `);
